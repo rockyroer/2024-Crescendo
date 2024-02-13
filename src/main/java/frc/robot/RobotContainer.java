@@ -5,15 +5,27 @@
 package frc.robot;
 
 import frc.robot.Constants.OperatorConstants;
-import frc.robot.Constants.k_xbox;
+import frc.robot.Constants.k_arm;
+import frc.robot.Constants.k_logitech;
+//import frc.robot.Constants.k_xbox;
 import frc.robot.commands.Autos;
+import frc.robot.commands.EjectNote;
 import frc.robot.commands.ExampleCommand;
+import frc.robot.commands.MoveArmToPosition;
+import frc.robot.commands.RunIntakeTillNote;
 import frc.robot.subsystems.Arm;
+import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.ExampleSubsystem;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.RunCommand;
+import edu.wpi.first.wpilibj2.command.button.JoystickButton;
+import edu.wpi.first.wpilibj.Joystick;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -26,12 +38,12 @@ public class RobotContainer {
   /* DECLARE THE SUBSTEMS: 
      // The robot's subsystems and commands are declared here...
   */
-  private final CommandXboxController m_driverController =
-      new CommandXboxController(OperatorConstants.kDriverControllerPort);
+  //private final CommandXboxController m_driverController = new CommandXboxController(OperatorConstants.kDriverControllerPort);
   private final CommandXboxController m_systemController =
       new CommandXboxController(OperatorConstants.kSystemControllerPort);
   // Create drive train subsytem ?  
   private final Arm m_Arm;
+  private final Intake m_Intake;
   // Create grabber substystem ?
   // Create intake subsystem ?
   // Replace with CommandPS4Controller or CommandJoystick if needed
@@ -46,7 +58,7 @@ public class RobotContainer {
      */
     // construct the drive/chassis subsytem
     m_Arm = new Arm();  // construct the arm 
-    // construct the intake 
+    m_Intake = new Intake();   // construct the intake 
     // construct the grabbers
     // construct the joysticks
     
@@ -59,7 +71,10 @@ public class RobotContainer {
     // set chassis default command
     m_Arm.setDefaultCommand(
       new RunCommand(() -> m_Arm.move(
-        m_systemController.getRawAxis(k_xbox.rightYaxis)), m_Arm));
+        m_systemController.getRawAxis(k_logitech.rightYaxis)), m_Arm));
+    m_Intake.setDefaultCommand(
+      new RunCommand(() -> m_Intake.spin(
+        m_systemController.getRawAxis(k_logitech.leftXaxis)), m_Intake));
     // set grabber default command
     // set intake default command
   }
@@ -76,14 +91,17 @@ public class RobotContainer {
    */
   
     // Schedule `ExampleCommand` when `exampleCondition` changes to `true`
-    new Trigger(m_exampleSubsystem::exampleCondition)
-        .onTrue(new ExampleCommand(m_exampleSubsystem));
+    //new Trigger(m_exampleSubsystem::exampleCondition).onTrue(new ExampleCommand(m_exampleSubsystem));
 
     // Schedule `exampleMethodCommand` when the Xbox controller's B button is pressed,
     // cancelling on release.
-    m_driverController.b().whileTrue(m_exampleSubsystem.exampleMethodCommand());
+  
+    new Trigger(m_systemController.a()).onTrue(new RunIntakeTillNote(m_Intake));
+    new Trigger(m_systemController.b()).onTrue(new EjectNote(m_Intake));
+    new Trigger(m_systemController.x()).onTrue(new MoveArmToPosition(k_arm.ArmUpPosition, m_Arm));
+    new Trigger(m_systemController.y()).onTrue(new MoveArmToPosition(k_arm.ArmScoringPostion, m_Arm));
     
-  }
+    }
 
   public Command getAutonomousCommand() {
   /**
