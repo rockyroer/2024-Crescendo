@@ -14,6 +14,7 @@ import frc.robot.commands.ExampleCommand;
 import frc.robot.commands.MoveArmToPosition;
 import frc.robot.commands.RunIntakeTillNote;
 import frc.robot.subsystems.Arm;
+import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.ExampleSubsystem;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -38,17 +39,14 @@ public class RobotContainer {
   /* DECLARE THE SUBSTEMS: 
      // The robot's subsystems and commands are declared here...
   */
-  //private final CommandXboxController m_driverController = new CommandXboxController(OperatorConstants.kDriverControllerPort);
-  private final CommandXboxController m_systemController =
-      new CommandXboxController(OperatorConstants.kSystemControllerPort);
-  // Create drive train subsytem ?  
+  private final CommandXboxController m_driverController;
+  private final CommandXboxController m_systemController;
   private final Arm m_Arm;
   private final Intake m_Intake;
+  private final DriveSubsystem m_Drive;
+  private final ExampleSubsystem m_exampleSubsystem;
   // Create grabber substystem ?
-  // Create intake subsystem ?
-  // Replace with CommandPS4Controller or CommandJoystick if needed
-  // The provided example: 
-     private final ExampleSubsystem m_exampleSubsystem = new ExampleSubsystem();
+  
   
   
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
@@ -56,28 +54,42 @@ public class RobotContainer {
     /* CONSTRUCT THE SUBSYSTEMS
      *
      */
-    // construct the drive/chassis subsytem
     m_Arm = new Arm();  // construct the arm 
     m_Intake = new Intake();   // construct the intake 
+    m_exampleSubsystem = new ExampleSubsystem();
+    m_Drive = new DriveSubsystem();
     // construct the grabbers
-    // construct the joysticks
-    
-    
+    m_driverController = new CommandXboxController(OperatorConstants.kDriverControllerPort);
+    m_systemController = new CommandXboxController(OperatorConstants.kSystemControllerPort);
+  
     setDefaultCommands();
     configureJoystickButtonBindings(); 
   }
 
   private void setDefaultCommands() {
-    // set chassis default command
-    m_Arm.setDefaultCommand(
-      new RunCommand(() -> m_Arm.move(
-        m_systemController.getRawAxis(k_logitech.rightYaxis)), m_Arm));
-    m_Intake.setDefaultCommand(
-      new RunCommand(() -> m_Intake.spin(
-        m_systemController.getRawAxis(k_logitech.leftXaxis)), m_Intake));
+    // set Arm default command
+    m_Arm.setDefaultCommand(new RunCommand(() -> 
+      m_Arm.move(
+        m_systemController.getRawAxis(k_logitech.rightYaxis)), 
+      m_Arm));
+    
+    // set Chassis default command
+    m_Drive.setDefaultCommand(new RunCommand(() -> 
+      m_Drive.drive(
+        m_driverController.getRawAxis(k_logitech.leftYaxis), 
+        m_driverController.getRawAxis(k_logitech.rightXaxis)), 
+      m_Drive));
+    
+    // set Intake default command
+    m_Intake.setDefaultCommand(new RunCommand(() -> 
+      m_Intake.spin(
+        m_systemController.getRawAxis(k_logitech.leftXaxis)), 
+      m_Intake));
+
     // set grabber default command
-    // set intake default command
+
   }
+
 
   private void configureJoystickButtonBindings() {
   /**
@@ -100,8 +112,7 @@ public class RobotContainer {
     new Trigger(m_systemController.b()).onTrue(new EjectNote(m_Intake));
     new Trigger(m_systemController.x()).onTrue(new MoveArmToPosition(k_arm.ArmUpPosition, m_Arm));
     new Trigger(m_systemController.y()).onTrue(new MoveArmToPosition(k_arm.ArmScoringPostion, m_Arm));
-    
-    }
+  }
 
   public Command getAutonomousCommand() {
   /**
@@ -109,7 +120,6 @@ public class RobotContainer {
    *
    * @return the command to run in autonomous
    */
-  
   
     // An example command will be run in autonomous
     return Autos.exampleAuto(m_exampleSubsystem);

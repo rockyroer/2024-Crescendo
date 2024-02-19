@@ -14,8 +14,8 @@ package frc.robot;
  */
 public final class Constants {
   public static class OperatorConstants {
-    public static final int kDriverControllerPort = 1;
     public static final int kSystemControllerPort = 0;
+    public static final int kDriverControllerPort = 1;
   }
 
   public static class k_arm{
@@ -33,12 +33,31 @@ public final class Constants {
     public static final double ArmScoringPostion = 60;
   }
 
+  public static class k_Drive{
+    public static final int leftMotors = 1; // PWM channel for Left
+    public static final int rightMotors = 0; // and Right motors
+    public static final int leftEncoderChannelA = 2; // and Right motors
+    public static final int leftEncoderChannelB = 3; // and Right motors
+    public static final int rightEncoderChannelA = 0; // and Right motors
+    public static final int rightEncoderChannelB = 1; // and Right motors
+    
+    public static final int nDrivingModesAvaiable = 3; // Set to the number of functioning modes
+    public static class DrivingMode{
+      public static final int arcadeDrive = 0;
+      public static final int arcadeDriveReversed = 1;
+      public static final int tankDrive = 2;
+      public static final int fieldOriented = 3; // not currently functional
+      public static final int gryoAssisted = 4;  // not currently functional
+    }
+  }
+
+
 
   public static class k_intake{
     public static final int CANMaxId = 6;
     public static final double IntakeMaxSpeed = 0.5;
-    public static final int rangeFinderDIOTriggerPin = 1;
-    public static final int rangeFinderDIOEchoPin = 2;
+    public static final int rangeFinderDIOTriggerPin = 6;
+    public static final int rangeFinderDIOEchoPin = 7;
     public static final double rangeToStopMotionInInches = 2;
     public static final double ejectSpeed = -0.2;
     public static final double ejectTimeMilliseconds = 1000;  
