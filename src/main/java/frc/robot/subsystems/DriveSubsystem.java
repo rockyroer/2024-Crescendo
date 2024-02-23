@@ -5,6 +5,7 @@
 package frc.robot.subsystems;
 
 import frc.robot.Constants.k_Drive;
+import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.kinematics.DifferentialDriveOdometry;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.ADXRS450_Gyro;
@@ -26,6 +27,7 @@ public class DriveSubsystem extends SubsystemBase {
   private final Field2d m_field = new Field2d();
   private final DifferentialDriveOdometry m_Odometry;
   private int drivingMode;
+  private SlewRateLimiter m_SlewRateLimiter; // limits acceleration 
 
   /** Constructs a new Drive Subsystem. */
   public DriveSubsystem() {
@@ -35,6 +37,7 @@ public class DriveSubsystem extends SubsystemBase {
     m_leftMotors.setInverted(true);
     m_rightMotors.setInverted(false);
     m_gyro = new ADXRS450_Gyro();
+    m_SlewRateLimiter = new SlewRateLimiter(k_Drive.AccelerationSlewRateLimiterValue);
     
     m_leftEncoder = new Encoder(k_Drive.leftEncoderChannelA,k_Drive.leftEncoderChannelB,false, CounterBase.EncodingType.k4X);
     m_rightEncoder = new Encoder(k_Drive.rightEncoderChannelA,k_Drive.rightEncoderChannelB,true, CounterBase.EncodingType.k4X);
@@ -64,6 +67,9 @@ public class DriveSubsystem extends SubsystemBase {
     } else if (drivingMode == k_Drive.DrivingMode.fieldOriented) {
       this.fieldOrientedDrive(joystickLevel1,joystickLevel2);
     }
+    else if (drivingMode == k_Drive.DrivingMode.arcadeDriveLimitedAcceleration) {
+      m_drive.arcadeDrive(m_SlewRateLimiter.calculate(joystickLevel1), joystickLevel2);
+    }
   }
 
   public void changeDrivingMode(){
@@ -71,7 +77,7 @@ public class DriveSubsystem extends SubsystemBase {
   }
 
   private void fieldOrientedDrive(double joystickLevel1, double joystickLevel2) {
-
+    
   }
 
   private String drivingModeString() {
@@ -81,6 +87,7 @@ public class DriveSubsystem extends SubsystemBase {
     if (this.drivingMode == k_Drive.DrivingMode.tankDrive) x = "Tank Drive";
     if (this.drivingMode == k_Drive.DrivingMode.fieldOriented) x = "Field Orientated";
     if (this.drivingMode == k_Drive.DrivingMode.gryoAssisted) x = "Gyro Assisted";
+    if (this.drivingMode == k_Drive.DrivingMode.arcadeDriveLimitedAcceleration) x = "Arcade Drive - Slew Limited";
     return x;
   }
   /* 

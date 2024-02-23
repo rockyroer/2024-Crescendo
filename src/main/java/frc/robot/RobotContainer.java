@@ -27,6 +27,7 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -45,7 +46,10 @@ public class RobotContainer {
   private final Intake m_Intake;
   private final DriveSubsystem m_Drive;
   private final ExampleSubsystem m_exampleSubsystem;
-  // Create grabber substystem ?
+
+  SendableChooser<String> mStringChooser = new SendableChooser<>();
+  
+  // Declare grabber substystem ?
   
   
   
@@ -58,7 +62,7 @@ public class RobotContainer {
     m_Intake = new Intake();   // construct the intake 
     m_exampleSubsystem = new ExampleSubsystem();
     m_Drive = new DriveSubsystem();
-    // construct the grabbers
+    // construct the grabber Subssytem
     m_driverController = new CommandXboxController(OperatorConstants.kDriverControllerPort);
     m_systemController = new CommandXboxController(OperatorConstants.kSystemControllerPort);
   
@@ -112,6 +116,7 @@ public class RobotContainer {
     new Trigger(m_systemController.b()).onTrue(new EjectNote(m_Intake));
     new Trigger(m_systemController.x()).onTrue(new MoveArmToPosition(k_arm.ArmUpPosition, m_Arm));
     new Trigger(m_systemController.y()).onTrue(new MoveArmToPosition(k_arm.ArmScoringPostion, m_Arm));
+
   }
 
   public Command getAutonomousCommand() {

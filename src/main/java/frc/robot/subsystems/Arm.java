@@ -20,26 +20,34 @@ import com.revrobotics.CANSparkBase.ControlType;
 
 
 public class Arm extends SubsystemBase {
-  private CANSparkMax m_armMotor;
-  private RelativeEncoder m_angleEncoder;
+  private CANSparkMax m_armMotorLeft, m_armMotorRight;
+  private RelativeEncoder m_angleEncoderLeft, m_angleEncoderRight;
   private SparkPIDController m_armPIDController; 
   private String m_statusMessage;
   private boolean m_manualMode;
   
   /** Constructs a new Arm */
   public Arm() {
-    m_armMotor = new CANSparkMax(k_arm.CANMaxId, MotorType.kBrushless);
-    m_angleEncoder = m_armMotor.getEncoder();
-    m_armPIDController = m_armMotor.getPIDController();
+    m_armMotorLeft = new CANSparkMax(k_arm.LeftCANMaxId, MotorType.kBrushless);  // leader
+    m_armMotorRight = new CANSparkMax(k_arm.RightCANMaxId, MotorType.kBrushless);  // follower
+    //m_armMotorRight.follow(m_armMotorLeft);
+   
+    m_manualMode = true;
+
+    m_angleEncoderLeft = m_armMotorLeft.getEncoder();
+    m_angleEncoderRight = m_armMotorRight.getEncoder();
+    m_armPIDController = m_armMotorLeft.getPIDController();
+    
+    
     
     // These values are all set in constants - and must be "tuned" to work properly. 
-    m_armPIDController.setP(k_arm.kArmAngleP);
-    m_armPIDController.setI(k_arm.kArmAngleI);
-    m_armPIDController.setD(k_arm.kArmAngleD);
-    m_armPIDController.setIZone(k_arm.kArmAngleIz);
-    m_armPIDController.setFF(k_arm.kArmAngleFF);
-    m_armPIDController.setOutputRange(k_arm.ArmAngleMinimumOutput, k_arm.ArmAngleMaximumOutput);
-    m_armMotor.burnFlash();
+    //m_armPIDController.setP(k_arm.kArmAngleP);
+    //m_armPIDController.setI(k_arm.kArmAngleI);
+    //m_armPIDController.setD(k_arm.kArmAngleD);
+    //m_armPIDController.setIZone(k_arm.kArmAngleIz);
+    //m_armPIDController.setFF(k_arm.kArmAngleFF);
+    //m_armPIDController.setOutputRange(k_arm.ArmAngleMinimumOutput, k_arm.ArmAngleMaximumOutput);
+    //m_armMotorLeft.burnFlash();
 
     m_statusMessage = "Arm has been constructed.";
   }
@@ -47,7 +55,9 @@ public class Arm extends SubsystemBase {
   public void move(double joystickLevel){
     if (m_manualMode) {
       m_statusMessage = "Arm is at " + Math.round(joystickLevel*100) + "% of max power of " + k_arm.ArmMaxSpeed;
-      m_armMotor.set(joystickLevel * k_arm.ArmMaxSpeed);
+      m_armMotorLeft.set(joystickLevel * k_arm.ArmMaxSpeed);
+      m_armMotorRight.set(joystickLevel * -k_arm.ArmMaxSpeed);
+
     } else {
       m_statusMessage = "Arm in Encoder Mode - move joystick > 50% to override";
       if ((joystickLevel > 0.5) || (joystickLevel < -0.5)) {
@@ -58,7 +68,9 @@ public class Arm extends SubsystemBase {
   }
 
   public void resetEncoder(){
-    m_angleEncoder.setPosition(0);
+    m_angleEncoderLeft.setPosition(0);
+    m_angleEncoderRight.setPosition(0);
+    
   }
 
   public void setArm(double desiredAngle) {
@@ -70,11 +82,11 @@ public class Arm extends SubsystemBase {
 
   public void halt() {
     m_statusMessage = "Arm is resting.";
-    m_armMotor.set(0);
+    m_armMotorLeft.set(0);
   }
   
   public double getPosition() {
-    return m_angleEncoder.getPosition();
+    return m_angleEncoderLeft.getPosition();
   }
 
   @Override
@@ -83,7 +95,8 @@ public class Arm extends SubsystemBase {
     //    SmartDashboard.putNumber("Arm Controller Encoder:", m_arm.getEncoder().getPosition());
     SmartDashboard.putString("Arm Status:", m_statusMessage);
     SmartDashboard.putBoolean("Manual Mdoe:", m_manualMode);
-    SmartDashboard.putNumber("Arm Encoder: (unknown units) ", m_angleEncoder.getPosition());
+    SmartDashboard.putNumber("Arm Encoder Left Leader: (unknown units) ", m_angleEncoderLeft.getPosition());
+    SmartDashboard.putNumber("Arm Encoder Right: (unknown units) ", m_angleEncoderRight.getPosition());
   }
 
 

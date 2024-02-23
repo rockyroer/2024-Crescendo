@@ -19,7 +19,8 @@ public final class Constants {
   }
 
   public static class k_arm{
-    public static final int CANMaxId = 2;
+    public static final int LeftCANMaxId = 2;
+    public static final int RightCANMaxId = 5;
     public static final double ArmMaxSpeed = 0.2;
     public static final double kArmAngleP = 0.004;    // Make changes here
     public static final double kArmAngleI = 0;
@@ -40,14 +41,16 @@ public final class Constants {
     public static final int leftEncoderChannelB = 3; // and Right motors
     public static final int rightEncoderChannelA = 0; // and Right motors
     public static final int rightEncoderChannelB = 1; // and Right motors
+    public static final double AccelerationSlewRateLimiterValue = 0.5; // limits acceleration changes - may need adjusting.
     
-    public static final int nDrivingModesAvaiable = 3; // Set to the number of functioning modes
+    public static final int nDrivingModesAvaiable = 4; // Set to the number of functioning modes
     public static class DrivingMode{
       public static final int arcadeDrive = 0;
       public static final int arcadeDriveReversed = 1;
       public static final int tankDrive = 2;
-      public static final int fieldOriented = 3; // not currently functional
-      public static final int gryoAssisted = 4;  // not currently functional
+      public static final int arcadeDriveLimitedAcceleration = 3;
+      public static final int fieldOriented = 4; // not currently functional
+      public static final int gryoAssisted = 5;  // not currently functional
     }
   }
 
@@ -95,9 +98,9 @@ public final class Constants {
     public static final int buttonRightJoystick = 10;
     public static final int leftXaxis = 0;
     public static final int leftYaxis = 1;
-    public static final int leftTrigger = 4;   // left Trigger is 2 for Roer's home 
-    public static final int rightTrigger = 5;  // left Trigger is 3 for Roer's Home
-    public static final int rightXaxis = 2;    // right x asxis is 4 for roer's homew
-    public static final int rightYaxis = 3;    // righty axsis is 5 for roer's home
+    public static final int leftTrigger = 2;   // left Trigger is 2 for Roer's home 
+    public static final int rightTrigger = 3;  // left Trigger is 3 for Roer's Home
+    public static final int rightXaxis = 4;    // right x asxis is 4 for roer's homew
+    public static final int rightYaxis = 5;    // righty axsis is 5 for roer's home
   }
 }
