@@ -15,8 +15,6 @@ import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 
-
-
 public class Intake extends SubsystemBase {
   private CANSparkMax m_intakeMotor;
   private String m_statusMessage;

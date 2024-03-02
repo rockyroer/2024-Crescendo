@@ -29,10 +29,17 @@ public final class Constants {
     public static final double kArmAngleFF = 0.0014;    // and here
     public static final double ArmAngleMinimumOutput = -1;
     public static final double ArmAngleMaximumOutput = 1;
-    public static final double ArmUpPosition = 20;
-    public static final double ArmDownPosition = -50;
-    public static final double ArmScoringPostion = 60;
+    public static final double ArmUpPosition = 50; // 50 is a guessed value for 'vertical'
+    public static final double ArmDownPosition = 0; // this assumes picking up value for encoders is reset to 0
+    public static final double ArmScoringPostion = 90; // 90 is a guessed value for
+    public static final int m_upperEncoderLimit = 10000000; // set for maximum of encoders
   }
+
+  public final class k_climber {
+    public static final int LeftCanID = 8;
+    public static final int RightCanID = 9;
+  }
+
 
   public static class k_Drive{
     public static final int leftMotors = 1; // PWM channel for Left
@@ -100,7 +107,7 @@ public final class Constants {
     public static final int leftYaxis = 1;
     public static final int leftTrigger = 2;   // left Trigger is 2 for Roer's home 
     public static final int rightTrigger = 3;  // left Trigger is 3 for Roer's Home
-    public static final int rightXaxis = 4;    // right x asxis is 4 for roer's homew
+    public static final int rightXaxis = 4;    // right x asxis is 4 for roer's home
     public static final int rightYaxis = 5;    // righty axsis is 5 for roer's home
   }
 }

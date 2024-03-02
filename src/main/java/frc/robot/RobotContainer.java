@@ -7,16 +7,15 @@ package frc.robot;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.Constants.k_arm;
 import frc.robot.Constants.k_logitech;
+import frc.robot.commands.DriveForward;
 //import frc.robot.Constants.k_xbox;
-import frc.robot.commands.Autos;
 import frc.robot.commands.EjectNote;
-import frc.robot.commands.ExampleCommand;
 import frc.robot.commands.MoveArmToPosition;
 import frc.robot.commands.RunIntakeTillNote;
 import frc.robot.subsystems.Arm;
+import frc.robot.subsystems.Climber;
 import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.Intake;
-import frc.robot.subsystems.ExampleSubsystem;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -28,6 +27,7 @@ import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -45,27 +45,33 @@ public class RobotContainer {
   private final Arm m_Arm;
   private final Intake m_Intake;
   private final DriveSubsystem m_Drive;
-  private final ExampleSubsystem m_exampleSubsystem;
-
-  SendableChooser<String> mStringChooser = new SendableChooser<>();
+  private final Climber m_Climber;
   
+  private SendableChooser<Command> m_autoModeChooser;
+   
   // Declare grabber substystem ?
   
   
   
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
-    /* CONSTRUCT THE SUBSYSTEMS
-     *
-     */
-    m_Arm = new Arm();  // construct the arm 
-    m_Intake = new Intake();   // construct the intake 
-    m_exampleSubsystem = new ExampleSubsystem();
+    /* CONSTRUCT THE SUBSYSTEMS */
+    m_Arm = new Arm();  
+    m_Intake = new Intake();   
     m_Drive = new DriveSubsystem();
-    // construct the grabber Subssytem
+    m_Climber = new Climber();
+
     m_driverController = new CommandXboxController(OperatorConstants.kDriverControllerPort);
     m_systemController = new CommandXboxController(OperatorConstants.kSystemControllerPort);
   
+    /* This sets up our autoonomous mode chooser.  */
+    m_autoModeChooser = new SendableChooser<Command>();
+    m_autoModeChooser.setDefaultOption("One Second", new DriveForward(0.8, 1000, m_Drive));
+    m_autoModeChooser.addOption("Five Seconds", new DriveForward(0.8, 5000, m_Drive));
+    m_autoModeChooser.addOption("Backwards Two Secons", new DriveForward(-0.8, 2000, m_Drive));
+    SmartDashboard.putData("Choose Auto Command", m_autoModeChooser);  
+
+
     setDefaultCommands();
     configureJoystickButtonBindings(); 
   }
@@ -74,59 +80,42 @@ public class RobotContainer {
     // set Arm default command
     m_Arm.setDefaultCommand(new RunCommand(() -> 
       m_Arm.move(
-        m_systemController.getRawAxis(k_logitech.rightYaxis)), 
+        m_systemController.getRawAxis(k_logitech.rightXaxis)), 
       m_Arm));
     
     // set Chassis default command
     m_Drive.setDefaultCommand(new RunCommand(() -> 
-      m_Drive.drive(
-        m_driverController.getRawAxis(k_logitech.leftYaxis), 
-        m_driverController.getRawAxis(k_logitech.rightXaxis)), 
-      m_Drive));
-    
+    m_Drive.drive(
+      m_driverController.getRawAxis(k_logitech.leftXaxis),
+      m_driverController.getRawAxis(k_logitech.leftYaxis), 
+      m_driverController.getRawAxis(k_logitech.rightXaxis),
+      m_driverController.getRawAxis(k_logitech.rightYaxis)), 
+    m_Drive));
+
     // set Intake default command
     m_Intake.setDefaultCommand(new RunCommand(() -> 
       m_Intake.spin(
         m_systemController.getRawAxis(k_logitech.leftXaxis)), 
       m_Intake));
 
-    // set grabber default command
-
+    // set Climber Default command
+    m_Climber.setDefaultCommand(new RunCommand(() -> 
+      m_Climber.move(
+        m_systemController.getRawAxis(k_logitech.leftYaxis),
+        m_systemController.getRawAxis(k_logitech.rightYaxis)),        
+      m_Climber));
   }
 
 
   private void configureJoystickButtonBindings() {
-  /**
-   * Use this method to define your trigger->command mappings. Triggers can be created via the
-   * {@link Trigger#Trigger(java.util.function.BooleanSupplier)} constructor with an arbitrary
-   * predicate, or via the named factories in {@link
-   * edu.wpi.first.wpilibj2.command.button.CommandGenericHID}'s subclasses for {@link
-   * CommandXboxController Xbox}/{@link edu.wpi.first.wpilibj2.command.button.CommandPS4Controller
-   * PS4} controllers or {@link edu.wpi.first.wpilibj2.command.button.CommandJoystick Flight
-   * joysticks}.
-   */
-  
-    // Schedule `ExampleCommand` when `exampleCondition` changes to `true`
-    //new Trigger(m_exampleSubsystem::exampleCondition).onTrue(new ExampleCommand(m_exampleSubsystem));
-
-    // Schedule `exampleMethodCommand` when the Xbox controller's B button is pressed,
-    // cancelling on release.
-  
     new Trigger(m_systemController.a()).onTrue(new RunIntakeTillNote(m_Intake));
     new Trigger(m_systemController.b()).onTrue(new EjectNote(m_Intake));
+    new Trigger(m_systemController.start()).onTrue(new InstantCommand(m_Arm::resetEncoder, m_Arm));
     new Trigger(m_systemController.x()).onTrue(new MoveArmToPosition(k_arm.ArmUpPosition, m_Arm));
-    new Trigger(m_systemController.y()).onTrue(new MoveArmToPosition(k_arm.ArmScoringPostion, m_Arm));
-
+    new Trigger(m_systemController.y()).onTrue(new MoveArmToPosition(k_arm.ArmScoringPostion, m_Arm));    
   }
 
   public Command getAutonomousCommand() {
-  /**
-   * Use this to pass the autonomous command to the main {@link Robot} class.
-   *
-   * @return the command to run in autonomous
-   */
-  
-    // An example command will be run in autonomous
-    return Autos.exampleAuto(m_exampleSubsystem);
-  }
+    return m_autoModeChooser.getSelected();
+  }  
 }

@@ -29,13 +29,14 @@ public class DriveSubsystem extends SubsystemBase {
   private int drivingMode;
   private SlewRateLimiter m_SlewRateLimiter; // limits acceleration 
 
+
   /** Constructs a new Drive Subsystem. */
   public DriveSubsystem() {
     m_leftMotors = new Spark(k_Drive.leftMotors);
     m_rightMotors = new Spark(k_Drive.rightMotors);
     m_drive = new DifferentialDrive(m_leftMotors, m_rightMotors);
-    m_leftMotors.setInverted(true);
-    m_rightMotors.setInverted(false);
+    m_leftMotors.setInverted(false);
+    m_rightMotors.setInverted(true);
     m_gyro = new ADXRS450_Gyro();
     m_SlewRateLimiter = new SlewRateLimiter(k_Drive.AccelerationSlewRateLimiterValue);
     
@@ -43,11 +44,11 @@ public class DriveSubsystem extends SubsystemBase {
     m_rightEncoder = new Encoder(k_Drive.rightEncoderChannelA,k_Drive.rightEncoderChannelB,true, CounterBase.EncodingType.k4X);
     m_leftEncoder.setDistancePerPulse(1.0 / 2000.0 * 2.0 * Math.PI * Units.inchesToMeters(3));
     m_rightEncoder.setDistancePerPulse(1.0 / 2000.0 * 2.0 * Math.PI * Units.inchesToMeters(3));
+    resetEncoders();
 
-    drivingMode = k_Drive.DrivingMode.arcadeDrive;
+    drivingMode = k_Drive.DrivingMode.arcadeDrive;  
     
     m_statusMessage = "Drive Subsystem Constructed";
-    resetEncoders();
     m_Odometry = new DifferentialDriveOdometry(m_gyro.getRotation2d(), m_leftEncoder.getDistance(), m_rightEncoder.getDistance());
     SmartDashboard.putData("Field", m_field);
   }
@@ -57,27 +58,41 @@ public class DriveSubsystem extends SubsystemBase {
     m_rightEncoder.reset();
   }
 
-  public void drive(double joystickLevel1, double joystickLevel2) {
+  /* Drive is the default driving function
+   * It takes joystick levels and depending on the 'driving mode' sends instructions to the correct driving mode.
+   */
+  public void drive(double joystickLevel1x, double joystickLevel1y, double joystickLevel2x,  double joystickLevel2y) {
+    //m_statusMessage = "Recieved joystick levels: 1x" + joystickLevel1x + "and 1y:" + joystickLevel1y + "and 2x:" + joystickLevel2x + "and 2y:" + joystickLevel2y;
+    m_statusMessage = "Driving with input from joystick.";
+
     if (drivingMode == k_Drive.DrivingMode.arcadeDrive) {
-      m_drive.arcadeDrive(joystickLevel1, joystickLevel2);
+      this.arcadeDrive(joystickLevel1y, joystickLevel2x);
     } else if (drivingMode == k_Drive.DrivingMode.arcadeDriveReversed) {
-      m_drive.arcadeDrive(-1*joystickLevel1, joystickLevel2);
+      this.arcadeDrive(-1*joystickLevel1y, joystickLevel2x);
     } else if (drivingMode == k_Drive.DrivingMode.tankDrive) {
-      m_drive.tankDrive(joystickLevel1, joystickLevel2);
+      this.tankDrive(-1*joystickLevel1y, -1*joystickLevel2y);
     } else if (drivingMode == k_Drive.DrivingMode.fieldOriented) {
-      this.fieldOrientedDrive(joystickLevel1,joystickLevel2);
-    }
-    else if (drivingMode == k_Drive.DrivingMode.arcadeDriveLimitedAcceleration) {
-      m_drive.arcadeDrive(m_SlewRateLimiter.calculate(joystickLevel1), joystickLevel2);
+      this.fieldOrientedDrive(joystickLevel1y,joystickLevel2x);
+    } else if (drivingMode == k_Drive.DrivingMode.arcadeDriveLimitedAcceleration) {
+      m_drive.arcadeDrive(m_SlewRateLimiter.calculate(joystickLevel1y), joystickLevel2x);
     }
   }
+  
+  public void arcadeDrive(double speed, double rotation) {
+    m_drive.arcadeDrive(speed, rotation);
+  }
+
+  public void tankDrive(double leftspeed, double rightspeed) {
+    m_drive.tankDrive(leftspeed, rightspeed);
+  }
+  
+  private void fieldOrientedDrive(double joystickLevel1, double joystickLevel2) {
+
+  }
+
 
   public void changeDrivingMode(){
     this.drivingMode = (drivingMode + 1) % k_Drive.nDrivingModesAvaiable;
-  }
-
-  private void fieldOrientedDrive(double joystickLevel1, double joystickLevel2) {
-    
   }
 
   private String drivingModeString() {
@@ -90,16 +105,10 @@ public class DriveSubsystem extends SubsystemBase {
     if (this.drivingMode == k_Drive.DrivingMode.arcadeDriveLimitedAcceleration) x = "Arcade Drive - Slew Limited";
     return x;
   }
-  /* 
-  private void arcadeDrive(double speed, double rotation) {
-    m_drive.arcadeDrive(speed, rotation);
-  }
-
-  private void tankDrive(double leftspeed, double rightspeed) {
-    m_drive.tankDrive(leftspeed, rightspeed);
-  }
-  */
-
+  
+  public double getGyroValue() {
+    return m_gyro.getAngle();
+  } 
 
   @Override
   public void periodic() {

@@ -25,6 +25,7 @@ public class Arm extends SubsystemBase {
   private SparkPIDController m_armPIDController; 
   private String m_statusMessage;
   private boolean m_manualMode;
+  private int m_upperEncoderLimit, m_lowerEncoderLimit;
   
   /** Constructs a new Arm */
   public Arm() {
@@ -37,8 +38,8 @@ public class Arm extends SubsystemBase {
     m_angleEncoderLeft = m_armMotorLeft.getEncoder();
     m_angleEncoderRight = m_armMotorRight.getEncoder();
     m_armPIDController = m_armMotorLeft.getPIDController();
-    
-    
+    m_lowerEncoderLimit = -1000;
+    m_upperEncoderLimit = 1000; 
     
     // These values are all set in constants - and must be "tuned" to work properly. 
     //m_armPIDController.setP(k_arm.kArmAngleP);
@@ -53,11 +54,21 @@ public class Arm extends SubsystemBase {
   }
 
   public void move(double joystickLevel){
-    if (m_manualMode) {
-      m_statusMessage = "Arm is at " + Math.round(joystickLevel*100) + "% of max power of " + k_arm.ArmMaxSpeed;
       m_armMotorLeft.set(joystickLevel * k_arm.ArmMaxSpeed);
       m_armMotorRight.set(joystickLevel * -k_arm.ArmMaxSpeed);
-
+      /*
+    if (m_manualMode) {
+      if (((joystickLevel >= 0) && (this.getPosition() < m_upperEncoderLimit)) || ((joystickLevel < 0) & (this.getPosition() < m_lowerEncoderLimit))) {
+        // Going up
+        m_statusMessage = "Arm is at " + Math.round(joystickLevel*100) + "% of max power of " + k_arm.ArmMaxSpeed;
+        m_armMotorLeft.set(joystickLevel * k_arm.ArmMaxSpeed);
+        m_armMotorRight.set(joystickLevel * -k_arm.ArmMaxSpeed);
+        }
+        else {
+          m_statusMessage = "Arm cannot exceed limits of " + m_lowerEncoderLimit + " and " + m_upperEncoderLimit;
+          m_armMotorLeft.set(0);
+          m_armMotorRight.set(0);
+        }
     } else {
       m_statusMessage = "Arm in Encoder Mode - move joystick > 50% to override";
       if ((joystickLevel > 0.5) || (joystickLevel < -0.5)) {
@@ -65,11 +76,15 @@ public class Arm extends SubsystemBase {
         m_armPIDController.setReference(joystickLevel * k_arm.ArmMaxSpeed, CANSparkBase.ControlType.kCurrent);
       }
     }
+    */
   }
 
   public void resetEncoder(){
     m_angleEncoderLeft.setPosition(0);
     m_angleEncoderRight.setPosition(0);
+    m_lowerEncoderLimit = 0;
+    m_upperEncoderLimit = k_arm.m_upperEncoderLimit; 
+
     
   }
 
@@ -97,6 +112,8 @@ public class Arm extends SubsystemBase {
     SmartDashboard.putBoolean("Manual Mdoe:", m_manualMode);
     SmartDashboard.putNumber("Arm Encoder Left Leader: (unknown units) ", m_angleEncoderLeft.getPosition());
     SmartDashboard.putNumber("Arm Encoder Right: (unknown units) ", m_angleEncoderRight.getPosition());
+    SmartDashboard.putNumber("Arm upper limit (unknown units) ", m_upperEncoderLimit);
+    SmartDashboard.putNumber("Arm lower limit (unknown units) ", m_lowerEncoderLimit);
   }
 
 
